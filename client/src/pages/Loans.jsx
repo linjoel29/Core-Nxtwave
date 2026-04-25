@@ -5,8 +5,13 @@ import { Receipt, Calendar, CreditCard, PlusCircle, Trash2 } from 'lucide-react'
 const EMPTY_FORM = { loan_name: '', amount: '', emi: '', due_date: '' };
 
 function LoanCard({ loan }) {
+  const principal = Number(loan.total_amount || loan.amount || loan.principal || loan.totalAmount || 0);
+  const emi = Number(loan.emi_amount || loan.emi || loan.monthlyEmi || loan.monthlyEMI || 0);
+  const dueDay = Number(loan.emi_due_day || loan.due_date || loan.dueDay || 0);
+  const remaining = Number(loan.remaining_months || loan.remainingMonths || 0);
+
   const today = new Date().getDate();
-  const isDueToday = Number(loan.due_date) === today;
+  const isDueToday = dueDay === today;
 
   return (
     <div className={`flat-card flex flex-col gap-3 ${isDueToday ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
@@ -25,19 +30,24 @@ function LoanCard({ loan }) {
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div>
           <p className="text-slate-400 text-xs font-semibold uppercase mb-0.5">Principal</p>
-          <p className="font-bold text-slate-700">₹{Number(loan.amount).toLocaleString('en-IN')}</p>
+          <p className="font-bold text-slate-700">₹{principal.toLocaleString('en-IN')}</p>
         </div>
         <div>
           <p className="text-slate-400 text-xs font-semibold uppercase mb-0.5">Monthly EMI</p>
-          <p className="font-bold text-red-600">₹{Number(loan.emi).toLocaleString('en-IN')}</p>
+          <p className="font-bold text-red-600">₹{emi.toLocaleString('en-IN')}</p>
         </div>
         <div>
           <p className="text-slate-400 text-xs font-semibold uppercase mb-0.5">Due Date</p>
           <p className="font-bold text-slate-700 flex items-center gap-1">
-            <Calendar size={13} className="text-slate-400" /> {loan.due_date}th
+            <Calendar size={13} className="text-slate-400" /> {dueDay ? `${dueDay}th` : 'Not set'}
           </p>
         </div>
       </div>
+      {remaining > 0 && (
+        <div className="text-xs text-slate-400 font-medium">
+          {remaining} months remaining
+        </div>
+      )}
     </div>
   );
 }

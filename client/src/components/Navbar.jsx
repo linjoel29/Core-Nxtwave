@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PiggyBank, LayoutDashboard, PlusCircle, BarChart2, CreditCard, LogOut, Target } from 'lucide-react';
+import { PiggyBank, LayoutDashboard, PlusCircle, BarChart2, CreditCard, LogOut, Target, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
@@ -13,6 +13,7 @@ export default function Navbar() {
     { path: '/analytics', label: 'Analytics', icon: <BarChart2 size={18} /> },
     { path: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
     { path: '/goals', label: 'Goals', icon: <Target size={18} /> },
+    { path: '/settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
 
   return (

@@ -9,6 +9,7 @@ import DailyEntry from './pages/DailyEntry';
 import Analytics from './pages/Analytics';
 import Loans from './pages/Loans';
 import Goals from './pages/Goals';
+import Settings from './pages/Settings';
 
 function App() {
   useEffect(() => {
@@ -34,6 +35,7 @@ function App() {
                       <Route path="/analytics" element={<Analytics />} />
                       <Route path="/loans" element={<Loans />} />
                       <Route path="/goals" element={<Goals />} />
+                      <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </main>

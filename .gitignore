@@ -19,3 +19,6 @@ build/
 serviceAccount.json
 *service-account*.json
 firebase-admin-key.json
+
+# Gemini config (contains API keys)
+.gemini/

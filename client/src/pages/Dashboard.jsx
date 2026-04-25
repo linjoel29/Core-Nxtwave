@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Flame, Award, AlertCircle, TrendingUp, IndianRupee, Target } from 'lucide-react';
-
-const BADGE_META = {
-  Bronze: { emoji: '🥉', color: 'border-amber-700 bg-amber-50 text-amber-800', threshold: '₹1,000' },
-  Silver: { emoji: '🥈', color: 'border-slate-400 bg-slate-50 text-slate-700', threshold: '₹5,000' },
-  Gold:   { emoji: '🥇', color: 'border-yellow-500 bg-yellow-50 text-yellow-700', threshold: '₹10,000' },
-};
+import { Zap, Flame, Award, AlertCircle, TrendingUp, IndianRupee, Target, Lock, ChevronDown, ChevronUp } from 'lucide-react';
+import { calculateBadges } from '../utils/badgeCalculator';
 
 function StatCard({ title, value, sub, icon, colorClass, borderClass }) {
   return (
@@ -21,25 +16,81 @@ function StatCard({ title, value, sub, icon, colorClass, borderClass }) {
   );
 }
 
+function BadgeCard({ badge }) {
+  const achieved = badge.achieved;
+  const progress = badge.progress;
+
+  return (
+    <div
+      className={`rounded-xl p-3 text-center border-2 transition-all duration-300 ${
+        achieved
+          ? 'border-yellow-400 bg-yellow-50 shadow-md shadow-yellow-100'
+          : 'border-slate-200 bg-slate-50 opacity-60'
+      }`}
+    >
+      <div className="text-3xl mb-1 relative inline-block">
+        {badge.icon}
+        {!achieved && (
+          <span className="absolute -top-1 -right-2 text-xs">🔒</span>
+        )}
+      </div>
+      <div className="font-bold text-xs text-slate-800 leading-tight">{badge.name}</div>
+      <div className="text-slate-500 text-[10px] mt-0.5 leading-tight">{badge.desc}</div>
+      {!achieved && progress && progress.percentage !== undefined && (
+        <div className="mt-2">
+          <div className="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
+            <div
+              className="bg-primary h-1 rounded-full transition-all"
+              style={{ width: `${progress.percentage}%` }}
+            ></div>
+          </div>
+          <div className="text-[10px] text-slate-400 mt-0.5 font-medium">
+            {progress.current} / {badge.req}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { currentUser } = useAuth();
   const [dashboard, setDashboard] = useState(null);
+  const [incomeLogs, setIncomeLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showLocked, setShowLocked] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const fetchAll = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/${currentUser.uid}`);
-        const data = await res.json();
-        setDashboard(data);
+        const [dashRes, historyRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_URL}/dashboard/${currentUser.uid}`),
+          fetch(`${import.meta.env.VITE_API_URL}/history/${currentUser.uid}`),
+        ]);
+        const dashData = await dashRes.json();
+        const historyData = await historyRes.json();
+        setDashboard(dashData);
+        setIncomeLogs(historyData.logs || historyData.savings || []);
       } catch (e) {
         console.error(e);
       } finally {
         setLoading(false);
       }
     };
-    fetchDashboard();
+    fetchAll();
   }, [currentUser]);
+
+  // Calculate badges from real data
+  const badgeResult = useMemo(() => {
+    if (!dashboard) return null;
+    return calculateBadges({
+      incomeLogs,
+      loans: dashboard.loans || [],
+      goals: dashboard.goals || [],
+      totalSaved: dashboard.totalSavings || 0,
+    });
+  }, [dashboard, incomeLogs]);
 
   if (loading) {
     return (
@@ -59,6 +110,17 @@ export default function Dashboard() {
   if (!dashboard) {
     return <p className="text-slate-500 text-center mt-16">Failed to load dashboard. Make sure the server is running.</p>;
   }
+
+  const stats = badgeResult?.stats || {};
+  const earned = badgeResult?.earned || [];
+  const locked = badgeResult?.locked || [];
+
+  // Get unique categories from earned + locked
+  const allBadges = [...earned, ...locked];
+  const categories = ['All', ...new Set(allBadges.map(b => b.category).filter(Boolean))];
+
+  const filteredEarned = activeCategory === 'All' ? earned : earned.filter(b => b.category === activeCategory);
+  const filteredLocked = activeCategory === 'All' ? locked : locked.filter(b => b.category === activeCategory);
 
   return (
     <div className="space-y-6">
@@ -99,7 +161,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Current Streak"
-          value={`${dashboard.currentStreak} Days`}
+          value={`${stats.streak || dashboard.currentStreak} Days`}
           sub={`Longest: ${dashboard.longestStreak} days`}
           icon={<Flame size={20} className="text-orange-500" />}
           colorClass="bg-orange-100"
@@ -113,6 +175,28 @@ export default function Dashboard() {
           colorClass="bg-blue-100"
           borderClass="border-l-4 border-l-blue-400"
         />
+      </div>
+
+      {/* ── Badge Stats Bar ── */}
+      <div className="flat-card bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div>
+            <p className="text-2xl font-bold">🔥 {stats.streak || 0}</p>
+            <p className="text-xs text-slate-300 font-medium">Day Streak</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">💰 ₹{(stats.totalSaved || 0).toLocaleString('en-IN')}</p>
+            <p className="text-xs text-slate-300 font-medium">Total Saved</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">📅 {stats.daysLogged || 0}</p>
+            <p className="text-xs text-slate-300 font-medium">Days Logged</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">🏆 {stats.earnedCount || 0}<span className="text-sm text-slate-400">/{stats.totalBadges || 0}</span></p>
+            <p className="text-xs text-slate-300 font-medium">Badges Earned</p>
+          </div>
+        </div>
       </div>
 
       {/* ── Active Goals ── */}
@@ -156,36 +240,71 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Badges ── */}
+      {/* ── Achievement Badges ── */}
       <div className="flat-card">
-        <div className="flex items-center gap-2 mb-4">
-          <Award size={20} className="text-yellow-500" />
-          <h2 className="font-bold text-slate-800">Earned Badges</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Award size={20} className="text-yellow-500" />
+            <h2 className="font-bold text-slate-800">Achievements</h2>
+            <span className="text-xs font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+              {earned.length} Earned
+            </span>
+          </div>
         </div>
 
-        {dashboard.badges.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
-            <Award size={40} className="mx-auto mb-2 opacity-30" />
-            <p className="text-sm font-medium">Save ₹1,000 to earn your first badge!</p>
-            <div className="flex justify-center gap-3 mt-4">
-              {Object.entries(BADGE_META).map(([name, meta]) => (
-                <div key={name} className={`badge-chip opacity-40 ${meta.color}`}>
-                  {meta.emoji} {name} ({meta.threshold})
-                </div>
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                activeCategory === cat
+                  ? 'bg-primary text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Earned Badges */}
+        {filteredEarned.length > 0 && (
+          <>
+            <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">
+              ✅ Unlocked ({filteredEarned.length})
+            </p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-6">
+              {filteredEarned.map(badge => (
+                <BadgeCard key={badge.id} badge={badge} />
               ))}
             </div>
+          </>
+        )}
+
+        {filteredEarned.length === 0 && (
+          <div className="text-center py-4 text-slate-400 mb-4">
+            <Award size={32} className="mx-auto mb-2 opacity-30" />
+            <p className="text-sm font-medium">No badges earned in this category yet</p>
           </div>
-        ) : (
-          <div className="flex flex-wrap gap-3">
-            {dashboard.badges.map(b => {
-              const meta = BADGE_META[b.badge_name] || { emoji: '🎖️', color: 'border-slate-300 bg-slate-50 text-slate-700', threshold: '' };
-              return (
-                <div key={b.id} className={`badge-chip ${meta.color}`}>
-                  {meta.emoji} {b.badge_name}
-                  {meta.threshold && <span className="text-xs opacity-70 ml-1">({meta.threshold})</span>}
-                </div>
-              );
-            })}
+        )}
+
+        {/* Locked Badges Toggle */}
+        <button
+          onClick={() => setShowLocked(!showLocked)}
+          className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 bg-slate-50 rounded-lg transition-colors"
+        >
+          <Lock size={14} />
+          {showLocked ? 'Hide' : 'Show'} Locked Badges ({filteredLocked.length})
+          {showLocked ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+
+        {showLocked && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mt-3">
+            {filteredLocked.map(badge => (
+              <BadgeCard key={badge.id} badge={badge} />
+            ))}
           </div>
         )}
       </div>
