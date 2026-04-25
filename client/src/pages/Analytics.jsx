@@ -34,7 +34,7 @@ export default function Analytics() {
       setLoading(true);
       setError('');
 
-      const res = await fetch(`http://localhost:5000/analytics/${currentUser.uid}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/analytics/${currentUser.uid}`);
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));

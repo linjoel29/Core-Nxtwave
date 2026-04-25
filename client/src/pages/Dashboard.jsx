@@ -29,7 +29,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/dashboard/${currentUser.uid}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/${currentUser.uid}`);
         const data = await res.json();
         setDashboard(data);
       } catch (e) {

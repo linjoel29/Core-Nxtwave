@@ -53,7 +53,7 @@ export default function Loans() {
 
   const fetchLoans = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/loan/${currentUser.uid}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/loan/${currentUser.uid}`);
       const data = await res.json();
       if (Array.isArray(data)) setLoans(data);
     } catch (e) {
@@ -72,7 +72,7 @@ export default function Loans() {
     setError('');
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/loan', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/loan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.uid, ...formData })

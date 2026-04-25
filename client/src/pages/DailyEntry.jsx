@@ -27,7 +27,7 @@ export default function DailyEntry() {
     setPrediction(null);
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/predict', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.uid, income, expense })
@@ -45,7 +45,7 @@ export default function DailyEntry() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('http://localhost:5000/log-entry', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/log-entry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

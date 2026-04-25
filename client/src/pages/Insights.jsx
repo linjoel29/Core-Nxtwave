@@ -9,7 +9,7 @@ export default function Insights() {
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch(`http://localhost:5000/insights/${currentUser.uid}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/insights/${currentUser.uid}`);
         if(response.ok) {
           const resData = await response.json();
           setData(resData);
