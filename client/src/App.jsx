@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -10,6 +10,10 @@ import Analytics from './pages/Analytics';
 import Loans from './pages/Loans';
 
 function App() {
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/ping`).catch(() => {});
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
