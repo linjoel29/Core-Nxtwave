@@ -54,7 +54,6 @@ export default function Loans() {
 
   const fetchLoans = async () => {
     try {
-      setLoading(true);
       setListError(null);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/loan/${currentUser.uid}`);
       const data = await res.json();
@@ -62,8 +61,6 @@ export default function Loans() {
     } catch (err) {
       setListError('Failed to load loans');
       console.error(err);
-    } finally {
-      setLoading(false); // ALWAYS runs, even if error
     }
   };
 
@@ -168,8 +165,13 @@ export default function Loans() {
             </div>
             {error && <div className="alert-danger text-sm">{error}</div>}
             <button type="submit" disabled={submitting} className="flat-btn">
-              {submitting ? 'Saving...' : 'Save Loan'}
+              {submitting ? 'Adding...' : 'Add Loan'}
             </button>
+            {submitting ? (
+              <div className="flex justify-center mt-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            ) : null}
           </form>
         </div>
       )}
@@ -180,13 +182,6 @@ export default function Loans() {
           <Receipt size={16} /> Active Loans ({loans.length})
         </h2>
         {(() => {
-          if (loading) {
-            return (
-              <div className="flex justify-center items-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            );
-          }
           if (listError) {
             return (
               <div className="text-red-500 text-center p-4">{listError}</div>
