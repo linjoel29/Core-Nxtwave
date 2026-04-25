@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #eff6ff;
+  --color-accent: #22c55e;
+  --color-accent-dark: #16a34a;
+  --color-bg: #f8fafc;
+  --color-card: #ffffff;
+  --color-alert: #ef4444;
+  --color-success: #22c55e;
+  --color-success-dark: #16a34a;
+  --color-border: #e2e8f0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Flat 2D Cards ── */
+.flat-card {
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+/* ── Buttons ── */
+.flat-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.flat-btn:hover:not(:disabled) {
+  background-color: #1e40af;
+}
+
+.flat-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.flat-btn-danger {
+  background-color: #ef4444;
+}
+
+.flat-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.flat-btn-success {
+  background-color: #22c55e;
+}
+
+.flat-btn-success:hover:not(:disabled) {
+  background-color: #16a34a;
+}
+
+/* ── Inputs ── */
+.flat-input {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.flat-input:focus {
+  border-color: #2563eb;
+}
+
+.flat-input::placeholder {
+  color: #94a3b8;
+}
+
+select.flat-input {
+  appearance: none;
+}
+
+/* ── Badge chips ── */
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 2px solid;
+}
+
+/* ── Alert banners ── */
+.alert-info {
+  background-color: #eff6ff;
+  border-left: 4px solid #2563eb;
+  color: #1e40af;
+  padding: 1rem;
+  border-radius: 0 8px 8px 0;
+  font-weight: 500;
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  border: 2px solid #ef4444;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.alert-success {
+  background-color: #f0fdf4;
+  border: 2px solid #22c55e;
+  color: #16a34a;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* ── Stat Number ── */
+.stat-number {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
