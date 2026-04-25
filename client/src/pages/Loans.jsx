@@ -50,16 +50,20 @@ export default function Loans() {
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
+  const [listError, setListError] = useState(null);
 
   const fetchLoans = async () => {
     try {
+      setLoading(true);
+      setListError(null);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/loan/${currentUser.uid}`);
       const data = await res.json();
-      if (Array.isArray(data)) setLoans(data);
-    } catch (e) {
-      console.error(e);
+      setLoans(Array.isArray(data) ? data : (data.loans || []));
+    } catch (err) {
+      setListError('Failed to load loans');
+      console.error(err);
     } finally {
-      setLoading(false);
+      setLoading(false); // ALWAYS runs, even if error
     }
   };
 
@@ -175,21 +179,37 @@ export default function Loans() {
         <h2 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
           <Receipt size={16} /> Active Loans ({loans.length})
         </h2>
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : loans.length === 0 ? (
-          <div className="flat-card text-center py-12 text-slate-400">
-            <Receipt size={48} className="mx-auto mb-3 opacity-20" />
-            <p className="font-medium">No active loans</p>
-            <p className="text-sm mt-1">Click "Add Loan" to track your first loan</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {loans.map(loan => <LoanCard key={loan.id} loan={loan} />)}
-          </div>
-        )}
+        {(() => {
+          if (loading) {
+            return (
+              <div className="flex justify-center items-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            );
+          }
+          if (listError) {
+            return (
+              <div className="text-red-500 text-center p-4">{listError}</div>
+            );
+          }
+          if (loans.length === 0) {
+            return (
+              <div className="text-center p-8">
+                <p className="text-gray-500 text-lg">No active loans</p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Add your first loan above
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-4">
+              {loans.map(loan => (
+                <LoanCard key={loan.id} loan={loan} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
     </div>
