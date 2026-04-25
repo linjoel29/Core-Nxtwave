@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import DailyEntry from './pages/DailyEntry';
 import Analytics from './pages/Analytics';
 import Loans from './pages/Loans';
+import Goals from './pages/Goals';
 
 function App() {
   useEffect(() => {
@@ -32,6 +33,7 @@ function App() {
                       <Route path="/daily" element={<DailyEntry />} />
                       <Route path="/analytics" element={<Analytics />} />
                       <Route path="/loans" element={<Loans />} />
+                      <Route path="/goals" element={<Goals />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </main>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Flame, Award, AlertCircle, TrendingUp, IndianRupee } from 'lucide-react';
+import { Zap, Flame, Award, AlertCircle, TrendingUp, IndianRupee, Target } from 'lucide-react';
 
 const BADGE_META = {
   Bronze: { emoji: '🥉', color: 'border-amber-700 bg-amber-50 text-amber-800', threshold: '₹1,000' },
@@ -114,6 +114,47 @@ export default function Dashboard() {
           borderClass="border-l-4 border-l-blue-400"
         />
       </div>
+
+      {/* ── Active Goals ── */}
+      {dashboard.goals && dashboard.goals.length > 0 && (
+        <div className="flat-card">
+          <div className="flex items-center gap-2 mb-4">
+            <Target size={20} className="text-primary" />
+            <h2 className="font-bold text-slate-800">Active Goals Progress</h2>
+          </div>
+          <div className="space-y-4">
+            {(() => {
+              return dashboard.goals.map(goal => {
+                const target = Number(goal.targetAmount || goal.target_amount || 0);
+                const progress = Number(goal.currentAmount || goal.savedAmount || 0);
+                
+                let rawPercentage = target > 0 ? ((progress / target) * 100).toFixed(1) : 0;
+                if (isNaN(rawPercentage)) rawPercentage = 0;
+                const percentage = Math.min(Number(rawPercentage), 100);
+
+                return (
+                  <div key={goal.id} className="bg-slate-50 border border-slate-100 p-3 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold text-slate-700 text-sm">{goal.goalName || goal.goal_name}</span>
+                      <span className="font-bold text-xs text-primary">{percentage}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2 mb-1.5 overflow-hidden">
+                      <div 
+                        className={`h-2 rounded-full ${percentage >= 100 ? 'bg-green-500' : 'bg-primary'}`} 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 font-medium">
+                      <span>₹{progress.toLocaleString('en-IN')}</span>
+                      <span>₹{target.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* ── Badges ── */}
       <div className="flat-card">

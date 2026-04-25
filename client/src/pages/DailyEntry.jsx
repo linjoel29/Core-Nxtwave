@@ -18,6 +18,24 @@ export default function DailyEntry() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [finalSaving, setFinalSaving] = useState(0);
+
+  const [goals, setGoals] = useState([]);
+  const [saveType, setSaveType] = useState('general');
+  const [selectedGoalId, setSelectedGoalId] = useState('');
+
+  React.useEffect(() => {
+    const fetchGoals = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/goals/${currentUser.uid}`);
+        const data = await res.json();
+        setGoals(data.goals || []);
+      } catch (err) {
+        console.error("Failed to fetch goals");
+      }
+    };
+    if (currentUser?.uid) fetchGoals();
+  }, [currentUser]);
 
   const randomNudge = NUDGE_MESSAGES[Math.floor(Math.random() * NUDGE_MESSAGES.length)];
 
@@ -35,6 +53,7 @@ export default function DailyEntry() {
       if (!res.ok) throw new Error('Server error');
       const data = await res.json();
       setPrediction(data);
+      setFinalSaving(data.saving || 0);
     } catch (err) {
       setError('Failed to get suggestion. Make sure the server is running.');
     } finally {
@@ -49,12 +68,15 @@ export default function DailyEntry() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId:      currentUser.uid,
+          userId: currentUser.uid,
           income,
           expense,
-          saving:      prediction.saving,
+          saving: finalSaving,
+          suggestion: prediction.saving,
           explanation: prediction.explanation,
-          date:        new Date().toISOString().split('T')[0]
+          date: new Date().toISOString().split('T')[0],
+          type: saveType,
+          goalId: saveType === 'goal' ? selectedGoalId : null
         })
       });
       if (!res.ok) throw new Error('Server error');
@@ -104,7 +126,7 @@ export default function DailyEntry() {
               Today's Income <span className="text-red-400">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">₹</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">     </span>
               <input
                 type="number"
                 required
@@ -112,7 +134,7 @@ export default function DailyEntry() {
                 value={income}
                 onChange={(e) => setIncome(e.target.value)}
                 className="flat-input pl-7"
-                placeholder="e.g. 800"
+                placeholder=" e.g. ₹800"
               />
             </div>
           </div>
@@ -121,14 +143,14 @@ export default function DailyEntry() {
               Today's Expense <span className="text-slate-400 font-normal">(optional)</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">₹</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">    </span>
               <input
                 type="number"
                 min="0"
                 value={expense}
                 onChange={(e) => setExpense(e.target.value)}
                 className="flat-input pl-7"
-                placeholder="e.g. 200"
+                placeholder="  e.g. ₹200"
               />
             </div>
           </div>
@@ -144,16 +166,53 @@ export default function DailyEntry() {
         </form>
       </div>
 
-      {/* Prediction Result */}
+      {/* Prediction Result & Editable Suggestion */}
       {prediction && (
         <div className="flat-card border-green-300 bg-green-50 space-y-4">
           <div className="text-center">
             <p className="text-green-700 font-semibold text-sm uppercase tracking-wide mb-1">Suggested Daily Saving</p>
-            <p className="text-5xl font-bold text-green-700">
-              ₹{prediction.saving}
+
+            {/* Editable Input */}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="text-3xl font-bold text-green-700">₹</span>
+              <input
+                type="number"
+                className="text-5xl font-bold text-green-700 bg-transparent w-32 text-center outline-none border-b-2 border-green-300 focus:border-green-600 transition-colors"
+                value={finalSaving}
+                onChange={(e) => setFinalSaving(Number(e.target.value) || 0)}
+              />
+            </div>
+
+            <p className="text-green-800 font-medium text-sm">
+              {Number(income) > 0 ? Math.round((finalSaving / Number(income)) * 100) : 0}% of your income saved
             </p>
+
+            <div className="flex justify-center gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => setFinalSaving(Math.max(0, finalSaving - 50))}
+                className="px-3 py-1.5 rounded bg-white text-green-700 border border-green-300 font-semibold text-xs hover:bg-green-100 transition-colors"
+              >
+                Round Down (-50)
+              </button>
+              <button
+                type="button"
+                onClick={() => setFinalSaving(prediction.saving)}
+                className="px-3 py-1.5 rounded bg-green-200 text-green-800 font-bold text-xs hover:bg-green-300 transition-colors"
+              >
+                Keep (₹{prediction.saving})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFinalSaving(finalSaving + 50)}
+                className="px-3 py-1.5 rounded bg-white text-green-700 border border-green-300 font-semibold text-xs hover:bg-green-100 transition-colors"
+              >
+                Round Up (+50)
+              </button>
+            </div>
+
             {prediction.trend && (
-              <span className="mt-2 inline-block text-xs bg-green-100 border border-green-300 text-green-700 px-3 py-1 rounded-full font-medium">
+              <span className="mt-4 inline-block text-xs bg-green-100 border border-green-300 text-green-700 px-3 py-1 rounded-full font-medium">
                 Income Trend: {prediction.trend.charAt(0).toUpperCase() + prediction.trend.slice(1)}
               </span>
             )}
@@ -164,10 +223,51 @@ export default function DailyEntry() {
             <p className="text-slate-700 text-sm leading-relaxed">{prediction.explanation}</p>
           </div>
 
+          <div className="bg-white border-2 border-slate-200 rounded-lg p-4 flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700">Where should this go?</label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <input
+                  type="radio"
+                  name="saveType"
+                  value="general"
+                  checked={saveType === 'general'}
+                  onChange={() => setSaveType('general')}
+                  className="accent-primary"
+                />
+                General Saving
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer text-sm" title={goals.length === 0 ? "You have no active goals" : ""}>
+                <input
+                  type="radio"
+                  name="saveType"
+                  value="goal"
+                  checked={saveType === 'goal'}
+                  onChange={() => setSaveType('goal')}
+                  className="accent-primary"
+                  disabled={goals.length === 0}
+                />
+                <span className={goals.length === 0 ? 'text-slate-400' : ''}>Specific Goal</span>
+              </label>
+            </div>
+            {saveType === 'goal' && (
+              <select
+                className="flat-input bg-slate-50 mt-2"
+                value={selectedGoalId}
+                onChange={(e) => setSelectedGoalId(e.target.value)}
+              >
+                <option value="" disabled>Select a goal...</option>
+                {goals.map(g => (
+                  <option key={g.id} value={g.id}>{g.goalName} (Target: ₹{g.targetAmount})</option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <button
             onClick={handleSave}
-            disabled={saving}
-            className="flat-btn flat-btn-success w-full py-3"
+            disabled={saving || (saveType === 'goal' && !selectedGoalId)}
+            className="flat-btn flat-btn-success w-full py-3 disabled:opacity-50"
           >
             {saving ? (
               <span className="flex items-center gap-2">

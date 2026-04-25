@@ -1,5 +1,21 @@
-node_modules/
+# Environment files
 .env
-.DS_Store
-dist/
+.env.local
+.env.production
+client/.env
+client/.env.local
+server/.env
+
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build output
+client/dist/
 build/
+
+# Firebase service account (IMPORTANT - never push this)
+serviceAccount.json
+*service-account*.json
+firebase-admin-key.json

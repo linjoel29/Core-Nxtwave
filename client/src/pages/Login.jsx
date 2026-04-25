@@ -54,7 +54,7 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 bg-primary flex-col justify-center px-16 text-white">
         <div className="flex items-center gap-3 mb-10">
           <PiggyBank size={40} className="text-green-400" />
-          <span className="text-4xl font-bold tracking-tight">SmartSave</span>
+          <span className="text-4xl font-bold tracking-tight">Gigsaver</span>
         </div>
         <h1 className="text-3xl font-bold leading-snug mb-4">
           Your Daily Savings<br />Made Smarter
@@ -78,7 +78,7 @@ export default function Login() {
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <PiggyBank size={28} className="text-primary" />
-            <span className="text-2xl font-bold text-slate-800">SmartSave</span>
+            <span className="text-2xl font-bold text-slate-800">Gigsaver</span>
           </div>
 
           <div className="flat-card">
@@ -86,7 +86,7 @@ export default function Login() {
               {isLogin ? 'Welcome back' : 'Create account'}
             </h2>
             <p className="text-slate-500 text-sm mb-6">
-              {isLogin ? 'Sign in to your SmartSave account' : 'Start your savings journey today'}
+              {isLogin ? 'Sign in to your Gigsaver account' : 'Start your savings journey today'}
             </p>
 
             <button

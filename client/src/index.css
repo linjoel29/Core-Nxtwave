@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2563eb;
-  --color-primary-dark: #1e40af;
-  --color-primary-light: #eff6ff;
-  --color-accent: #22c55e;
-  --color-accent-dark: #16a34a;
-  --color-bg: #f8fafc;
+  --color-primary: #233D4C;
+  --color-primary-dark: #1A2D3A;
+  --color-primary-light: #E9EEF2;
+  --color-accent: #FD802E;
+  --color-accent-dark: #E67026;
+  --color-bg: #F8FAFC;
   --color-card: #ffffff;
-  --color-alert: #ef4444;
-  --color-success: #22c55e;
-  --color-success-dark: #16a34a;
+  --color-alert: #EF4444;
+  --color-success: #22C55E;
+  --color-success-dark: #16A34A;
   --color-border: #e2e8f0;
 }
 
@@ -20,7 +20,7 @@
 
 body {
   font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-  background-color: #f8fafc;
+  background-color: #F8FAFC;
   color: #0f172a;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -30,16 +30,17 @@ body {
 .flat-card {
   background-color: #ffffff;
   border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 1rem; /* rounded-2xl */
   padding: 1.5rem;
+  box-shadow: none; /* Minimal shadows */
 }
 
 /* ── Buttons ── */
 .flat-btn {
-  background-color: #2563eb;
+  background-color: #233D4C;
   color: white;
   padding: 0.625rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 0.75rem; /* slightly rounded */
   border: none;
   font-weight: 600;
   font-size: 0.875rem;
@@ -52,7 +53,7 @@ body {
 }
 
 .flat-btn:hover:not(:disabled) {
-  background-color: #1e40af;
+  background-color: #1A2D3A;
 }
 
 .flat-btn:disabled {
@@ -61,25 +62,25 @@ body {
 }
 
 .flat-btn-danger {
-  background-color: #ef4444;
+  background-color: #EF4444;
 }
 
 .flat-btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: #DC2626;
 }
 
 .flat-btn-success {
-  background-color: #22c55e;
+  background-color: #22C55E;
 }
 
 .flat-btn-success:hover:not(:disabled) {
-  background-color: #16a34a;
+  background-color: #16A34A;
 }
 
 /* ── Inputs ── */
 .flat-input {
   border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0.75rem;
   padding: 0.625rem 0.875rem;
   width: 100%;
   outline: none;
@@ -91,7 +92,7 @@ body {
 }
 
 .flat-input:focus {
-  border-color: #2563eb;
+  border-color: #233D4C;
 }
 
 .flat-input::placeholder {
@@ -116,9 +117,9 @@ select.flat-input {
 
 /* ── Alert banners ── */
 .alert-info {
-  background-color: #eff6ff;
-  border-left: 4px solid #2563eb;
-  color: #1e40af;
+  background-color: #E9EEF2;
+  border-left: 4px solid #233D4C;
+  color: #233D4C;
   padding: 1rem;
   border-radius: 0 8px 8px 0;
   font-weight: 500;
@@ -126,16 +127,16 @@ select.flat-input {
 
 .alert-danger {
   background-color: #fef2f2;
-  border: 2px solid #ef4444;
-  color: #dc2626;
+  border: 2px solid #EF4444;
+  color: #DC2626;
   padding: 1rem;
   border-radius: 8px;
 }
 
 .alert-success {
   background-color: #f0fdf4;
-  border: 2px solid #22c55e;
-  color: #16a34a;
+  border: 2px solid #22C55E;
+  color: #16A34A;
   padding: 1rem;
   border-radius: 8px;
 }

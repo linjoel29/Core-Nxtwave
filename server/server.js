@@ -108,7 +108,7 @@ app.post('/predict', async (req, res) => {
     if (expenseNum > incomeNum * 0.7) baseSaving *= 0.5;
     if (totalEmi   > incomeNum * 0.3) baseSaving *= 0.5;
 
-    const saving = remaining < 50 ? 0 : Math.round(Math.min(baseSaving, 1000));
+    const saving = remaining <= 0 ? 0 : Math.round(Math.max(baseSaving, 10));
 
     const explanation = saving > 0
       ? await callGemini(
@@ -132,27 +132,36 @@ app.post('/predict', async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 app.post('/log-entry', async (req, res) => {
   try {
-    const { userId, income, expense, saving, date, explanation } = req.body;
+    const { userId, income, expense, saving, date, explanation, type, goalId } = req.body;
 
-    console.log('[log-entry] Received:', { userId, income, expense, saving, date });
+    console.log('[log-entry] Received:', { userId, income, expense, saving, date, type, goalId });
 
     if (!userId) return res.status(400).json({ error: 'userId is required' });
     if (!date)   return res.status(400).json({ error: 'date is required' });
 
-    // ── Build Firestore document (camelCase field names for consistency) ──────
     const logEntry = {
       userId,
       date,
+      type:           type || 'general',
+      goalId:         goalId || null,
       income:         Number(income)  || 0,
       expense:        Number(expense) || 0,
       saved:          Number(saving)  || 0,
-      suggestion:     Number(saving)  || 0,
+      suggestion:     Number(req.body.suggestion) || Number(saving) || 0,
       ai_explanation: explanation || '',
       createdAt:      admin.firestore.FieldValue.serverTimestamp(),
     };
 
     console.log('[log-entry] Writing to Firestore income_logs');
     await db.collection('income_logs').add(logEntry);
+
+    // Goal allocation logic
+    if (type === 'goal' && goalId && Number(saving) > 0) {
+      await db.collection('goals').doc(goalId).update({
+        currentAmount: admin.firestore.FieldValue.increment(Number(saving))
+      });
+      console.log(`[log-entry] Incremented goal ${goalId} by ${saving}`);
+    }
 
     // Auto-award badges based on cumulative savings
     const savedAmt = Number(saving) || 0;
@@ -183,6 +192,30 @@ app.post('/log-entry', async (req, res) => {
           });
           console.log(`[log-entry] Badge awarded: ${t.name} to ${userId}`);
         }
+      }
+
+      // Goal Achiever Badge Check
+      const goalsSnap = await db.collection('goals').where('userId', '==', userId).get();
+      const goals = goalsSnap.docs.map(d => d.data());
+      let remainingSavings = total;
+      let completedGoalsCount = 0;
+      for (const g of goals) {
+        const target = Number(g.targetAmount || g.target_amount) || 0;
+        if (remainingSavings >= target && target > 0) {
+          completedGoalsCount++;
+          remainingSavings -= target;
+        } else {
+          remainingSavings = 0;
+        }
+      }
+      
+      if (completedGoalsCount >= 1 && !earned.has('Goal Achiever')) {
+        await db.collection('badges').add({
+          userId,
+          badge_name: 'Goal Achiever',
+          awarded_at: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log(`[log-entry] Badge awarded: Goal Achiever to ${userId}`);
       }
     }
 
@@ -230,14 +263,22 @@ app.get('/dashboard/:userId', async (req, res) => {
       'Every rupee saved today is a step toward financial freedom! 🚀'
     );
 
+    const goalsSnap = await db.collection('goals').where('userId', '==', userId).get();
+    const goals = goalsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Recompute goal progress simply based on totalSavings for now or a dedicated field
+    // We will pass them down to let the frontend calculate progress against total savings
+
     res.json({
       totalSavings,
       currentStreak,
       longestStreak,
       badges,
+      loans,
+      activeLoansCount: loans.length,
+      goals,
       loanReminder,
       nudge,
-      activeLoansCount: loans.length,
     });
   } catch (e) {
     console.error('GET /dashboard error:', e.message, e.stack);
@@ -319,6 +360,63 @@ app.use('/loans', loansRouter);
 // ── Income route (from controllers) ──────────────────────────────────────────
 const incomeRouter = require('./routes/income');
 app.use('/income', incomeRouter);
+
+// ────────────────────────────────────────────────────────────────────────────
+// GOALS routes
+// ────────────────────────────────────────────────────────────────────────────
+app.post('/api/goals/add', async (req, res) => {
+  try {
+    const goal = {
+      userId: req.body.userId,
+      goalName: req.body.goalName,
+      targetAmount: Number(req.body.targetAmount),
+      currentAmount: Number(req.body.currentAmount) || 0,
+      deadline: req.body.deadline,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('goals').add(goal);
+    res.json({ success: true, message: 'Goal created successfully' });
+  } catch (err) {
+    console.error('Add goal error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/goals/:userId', async (req, res) => {
+  try {
+    const snapshot = await db.collection('goals')
+      .where('userId', '==', req.params.userId)
+      .get();
+    const goals = snapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    }));
+    res.json({ goals });
+  } catch (err) {
+    console.error('Fetch goals error:', err);
+    res.status(500).json({ goals: [], error: err.message });
+  }
+});
+
+app.patch('/api/goals/:goalId', async (req, res) => {
+  try {
+    await db.collection('goals').doc(req.params.goalId).update({
+      currentAmount: Number(req.body.currentAmount)
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/goals/:goalId', async (req, res) => {
+  try {
+    await db.collection('goals').doc(req.params.goalId).delete();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // ── Savings route ─────────────────────────────────────────────────────────────
 const savingsRouter = require('./routes/savings');

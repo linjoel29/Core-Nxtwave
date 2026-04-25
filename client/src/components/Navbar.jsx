@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PiggyBank, LayoutDashboard, PlusCircle, BarChart2, CreditCard, LogOut } from 'lucide-react';
+import { PiggyBank, LayoutDashboard, PlusCircle, BarChart2, CreditCard, LogOut, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
@@ -12,6 +12,7 @@ export default function Navbar() {
     { path: '/daily', label: 'Daily', icon: <PlusCircle size={18} /> },
     { path: '/analytics', label: 'Analytics', icon: <BarChart2 size={18} /> },
     { path: '/loans', label: 'Loans', icon: <CreditCard size={18} /> },
+    { path: '/goals', label: 'Goals', icon: <Target size={18} /> },
   ];
 
   return (
@@ -19,7 +20,7 @@ export default function Navbar() {
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center px-4 py-3 gap-3">
         <Link to="/dashboard" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
           <PiggyBank size={26} className="text-primary" />
-          <span className="text-xl font-bold tracking-tight text-slate-800">SmartSave</span>
+          <span className="text-xl font-bold tracking-tight text-slate-800">Gigsaver</span>
         </Link>
 
         <div className="flex flex-wrap justify-center items-center gap-1">
