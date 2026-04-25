@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
     ],
+    base: '/',
+    build: {
+      outDir: 'dist'
+    },
     define: {
       'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(env.REACT_APP_SUPABASE_URL),
       'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(env.REACT_APP_SUPABASE_ANON_KEY)
