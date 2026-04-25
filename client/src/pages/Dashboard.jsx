@@ -43,8 +43,15 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 text-center">
+        <div className="bg-blue-100 p-4 rounded-2xl mb-2">
+          <Zap size={40} className="text-primary animate-pulse" />
+        </div>
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="mt-4">
+          <h2 className="text-xl font-bold text-slate-800">Setting up your dashboard...</h2>
+          <p className="text-slate-500 text-sm mt-1">This may take a few seconds on first load</p>
+        </div>
       </div>
     );
   }
